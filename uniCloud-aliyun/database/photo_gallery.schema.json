@@ -1,0 +1,37 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"imgUrl": {
+			"description": "图片链接",
+			"bsonType": "string"
+		},
+		"description": {
+			"description": "描述",
+			"bsonType": "string"
+		},
+		"position": {
+			"description": "位置",
+			"bsonType": "string"
+		},
+		"setTime": {
+			"description": "用户输入的时间",
+			"bsonType": "string"
+		},
+		"star": {
+			"description": "赞的数量",
+			"bsonType": "int",
+			"defaultValue": 0,
+			"required": false
+		}
+	}
+}
