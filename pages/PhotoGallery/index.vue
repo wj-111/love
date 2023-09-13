@@ -3,7 +3,7 @@
 		<view class="bg-img-botton"
 			:style="{ 'background-image': `url(${info[bottomCurrent] ? info[bottomCurrent].imgUrl : ''})`}" />
 		<view class="bg-img" :style="{ 'background-image': `url(${info[current].imgUrl})` }" />
-		<swiper class="swiper-box" @change="change" previous-margin="30px" next-margin="30px">
+		<swiper :current="current" class="swiper-box" @change="change" previous-margin="30px" next-margin="30px">
 			<swiper-item v-for="(item ,index) in info" :key="index">
 				<view class="swiper-item">
 					<view :class="index === current ? 'white-box-selected' : 'white-box'">
@@ -23,34 +23,31 @@
 									</view>
 								</view>
 								<view class="star-num">
-									<text v-for="item in new Array(5)">
+									<view class="star-item" v-for="item in new Array(5)">
 										<uni-icons color="#e85481" type="star-filled" size="24" />
-									</text>
+									</view>
 								</view>
 							</view>
 							<view class="divider" />
 							<view class="tools">
-								<uni-icons class="first-icon" type="trash" size="30"></uni-icons>
+								<uni-icons @click="deletePhoto(item)" class="first-icon" type="trash"
+									size="30"></uni-icons>
 								<uni-icons type="compose" size="30"></uni-icons>
 								<uni-icons class="star-button" type="hand-up" size="36" color="#e85481"></uni-icons>
 							</view>
-
 						</view>
-
 					</view>
-
-
-					<!-- <button @click="jumptoEdit()">删除</button> -->
 				</view>
 			</swiper-item>
 		</swiper>
-
-		<!-- 		<button @click="jumptoEdit()">新增内容</button> -->
 	</view>
 </template>
 
 
 <script>
+	const photoObj = uniCloud.importObject('photo') //第一步导入云对象
+
+
 	export default {
 		data() {
 			return {
@@ -58,7 +55,8 @@
 					imgUrl: 'https://mp-76f6500b-d2d6-4ca0-8bb1-f5fadc40d4ba.cdn.bspapp.com/cloudstorage/0b20b8b0-96e0-489f-b228-d70a11458f87.jpg'
 				}],
 				current: 0,
-				bottomCurrent: 0
+				bottomCurrent: 0,
+				_id: '-1'
 			};
 		},
 		watch: {
@@ -66,35 +64,34 @@
 				const that = this
 				setTimeout(() => {
 					that.bottomCurrent = val
-					console.log(`new: ${val}, old: ${oldVal}`)
 				}, 500)
 			},
 		},
 		mounted() {
-			uni.showLoading({
-				title: '加载中',
-				mask: true,
-			})
-
-			const db = uniCloud.databaseForJQL();
-			db.collection('photo_gallery').get().then(res => {
-				console.log(res)
-				const {
-					data,
-					errCode
-				} = res || {}
-				if (errCode === 0) {
-					this.info = data
-				}
-				setTimeout(() => {
-					uni.hideLoading()
-				}, 200)
-			})
-
-
-
+			this.getListData()
 		},
 		methods: {
+			getListData() {
+				uni.showLoading({
+					title: '加载中',
+					mask: true,
+				})
+
+				const db = uniCloud.databaseForJQL();
+				db.collection('photo_gallery').get().then(res => {
+					console.log(res)
+					const {
+						data,
+						errCode
+					} = res || {}
+					if (errCode === 0) {
+						this.info = data
+					}
+					setTimeout(() => {
+						uni.hideLoading()
+					}, 200)
+				})
+			},
 			change(e) {
 				this.current = e.detail.current;
 			},
@@ -102,6 +99,44 @@
 				uni.navigateTo({
 					url: '/pages/PhotoGallery/edit'
 				});
+			},
+			deletePhoto(photoItem) {
+				try {
+					uni.showModal({
+						title: '是否确认删除',
+						success: async (res) => {
+							console.log(res)
+							const {
+								confirm,
+								cancel
+							} = res
+							if (confirm) {
+								uni.showLoading({
+									title: '操作中',
+									mask: true,
+								})
+								const db = uniCloud.database();
+								const dbResult = await db.collection('photo_gallery').doc(photoItem._id)
+									.remove()
+								const storeResult = await photoObj.delete(photoItem)
+								this.current = this.current - 1
+
+								setTimeout(() => {
+									uni.hideLoading()
+									this.getListData()
+								}, 500)
+							}
+
+						}
+					})
+				} catch (e) {
+					// 符合uniCloud响应体规范 https://uniapp.dcloud.net.cn/uniCloud/cf-functions?id=resformat，自动抛出此错误 
+					uni.showModal({
+						title: '创建失败',
+						content: e.errMsg,
+						showCancel: false
+					})
+				}
 			}
 		}
 	}
@@ -185,6 +220,10 @@
 			.star-num {
 				color: #f1b;
 				margin-left: auto;
+			}
+
+			.star-item {
+				display: inline-block;
 			}
 
 			.divider {

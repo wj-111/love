@@ -87,13 +87,6 @@
 
 			// 
 			success(e) {
-				console.log({
-					imgUrl: this.imageValue[0].url,
-					description: this.description,
-					position: this.position,
-					setTime: this.setTime,
-				})
-
 				const db = uniCloud.database();
 				db.collection('photo_gallery').add({
 					imgUrl: this.imageValue[0].url,
