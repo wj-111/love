@@ -50,6 +50,7 @@
             "treeShaking" : {
                 "enable" : true
             }
-        }
+        },
+        "title" : "爱"
     }
 }

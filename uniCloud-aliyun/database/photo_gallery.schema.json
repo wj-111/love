@@ -23,8 +23,16 @@
 			"description": "位置",
 			"bsonType": "string"
 		},
-		"setTime": {
+		"userSetTime": {
 			"description": "用户输入的时间",
+			"bsonType": "string"
+		},
+		"buildTime": {
+			"description": "创建的时间",
+			"bsonType": "string"
+		},
+		"lastUpdateTime": {
+			"description": "最后修改的时间",
 			"bsonType": "string"
 		},
 		"star": {

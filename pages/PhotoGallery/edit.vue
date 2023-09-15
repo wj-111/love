@@ -1,28 +1,27 @@
 <template>
-	<view>
+	<view class="content">
 		<view class="uni-textarea">
 			<textarea v-model="description" placeholder="描述一下吧" />
 		</view>
-		<uni-file-picker v-model="imageValue" fileMediatype="image" mode="grid" @select="select" @progress="progress"
-			@success="success" @delete="deleteEvent" @fail="fail" ref="files" :auto-upload="false" limit="1" />
+		<uni-file-picker class="img-picker" return-type="object" v-model="imageValue" fileMediatype="image" mode="grid"
+			@select="select" @progress="progress" @success="success" @delete="deleteEvent" @fail="fail" ref="files"
+			:auto-upload="false" limit="1" />
 
-		<input v-model="position" placeholder="地点" type="text">
-		<!-- <input v-model="setTime" placeholder="时间" type="text"> -->
+		地点：
+		<input class="uni-input" v-model="position" placeholder="请输入地点" type="text">
+		<!-- <input v-model="userSetTime" placeholder="时间" type="text"> -->
 
 		<view class="uni-list">
 			<view class="uni-list-cell">
-				<view class="uni-list-cell-left">
-					当前选择
-				</view>
 				<view class="uni-list-cell-db">
-					<picker mode="date" :value="setTime" @change="bindDateChange">
-						<view class="uni-input">{{setTime}}</view>
+					<picker mode="date" :value="userSetTime" @change="bindDateChange">
+						时间：<view class="uni-input">{{userSetTime}}</view>
 					</picker>
 				</view>
 			</view>
 		</view>
 
-		<button @click="upload()">发表</button>
+		<button class="submit-button" @click="upload()">发表</button>
 		<!-- <button @click="printInfor()">输出图片</button> -->
 		<!-- <button @click="handleImg()">处理图片</button> -->
 	</view>
@@ -36,12 +35,54 @@
 				format: true
 			})
 			return {
-				imageValue: [],
+				id: '-1',
+				imageValue: {},
 				description: '',
 				position: '',
-				setTime: currentDate,
-				// setTime: '',
+				userSetTime: currentDate,
 			};
+		},
+		onLoad(option) {
+			const {
+				id
+			} = option
+			// 不为-1是修改
+			if (id !== '-1') {
+				this.id = id
+				uni.showLoading({
+					title: '加载中',
+					mask: true,
+				})
+				const db = uniCloud.databaseForJQL();
+				db.collection('photo_gallery')
+					.where(`_id == "${id}"`)
+					.get()
+					.then((res) => {
+						const {
+							errCode,
+							data
+						} = res || {}
+						console.log(res)
+						if (errCode === 0) {
+							const {
+								imgUrl,
+								description,
+								position,
+								userSetTime
+							} = data[0]
+							this.imageValue = {
+								url: imgUrl
+							}
+							this.description = description
+							this.position = position
+							this.userSetTime = userSetTime
+						}
+						uni.hideLoading()
+					}).catch((err) => {
+						// err.message 错误信息
+						// err.code 错误码
+					})
+			}
 		},
 		methods: {
 			getDate(type) {
@@ -63,15 +104,24 @@
 				this.$refs.files.clearFiles()
 			},
 			bindDateChange: function(e) {
-				this.setTime = e.detail.value
+				this.userSetTime = e.detail.value
 			},
 			// 提交触发上传图片，图片上传成功回调里，把其他数据和图片路径一起保存
 			upload() {
-				uni.showLoading({
-					title: '上传中',
-					mask: true,
-				})
-				this.$refs.files.upload()
+				console.log(this.imageValue)
+				// 有概率新增也会出现有这个对象
+				
+				// 如果未修改图片或者新增图片，就直接调用上传其他信息
+				if (this?.imageValue?.url) {
+					this.success()
+				} else {
+					uni.showLoading({
+						title: '上传中',
+						mask: true,
+					})
+					this.$refs.files.upload()
+				}
+
 			},
 			printInfor() {
 				console.log(this.imageValue)
@@ -88,29 +138,67 @@
 			// 
 			success(e) {
 				const db = uniCloud.database();
-				db.collection('photo_gallery').add({
-					imgUrl: this.imageValue[0].url,
-					description: this.description,
-					position: this.position,
-					setTime: this.setTime,
-				}).then(() => {
-					setTimeout(() => {
-						uni.hideLoading()
-						uni.showToast({
-							icon: 'success',
-							title: '上传成功'
-						})
-					}, 200)
-				}).catch((e) => {
-					setTimeout(() => {
-						uni.hideLoading()
-						uni.showToast({
-							icon: 'error',
-							title: '上传失败'
-						})
-						console.log(e)
-					}, 200)
-				})
+				if (this.id === '-1') {
+					db.collection('photo_gallery').add({
+						imgUrl: this.imageValue.url,
+						description: this.description,
+						position: this.position,
+						userSetTime: this.userSetTime,
+						buildTime: String(new Date().getTime()),
+						lastUpdateTime: String(new Date().getTime()),
+					}).then(() => {
+						setTimeout(() => {
+							uni.hideLoading()
+							uni.showToast({
+								icon: 'success',
+								title: '上传成功'
+							})
+							setTimeout(() => {
+								uni.navigateBack({})
+							}, 1500)
+						}, 200)
+					}).catch((e) => {
+						setTimeout(() => {
+							uni.hideLoading()
+							uni.showToast({
+								icon: 'error',
+								title: '上传失败'
+							})
+							console.log(e)
+						}, 200)
+					})
+				} else {
+					db.collection('photo_gallery').doc(this.id).update({
+						imgUrl: this.imageValue.url,
+						description: this.description,
+						position: this.position,
+						userSetTime: this.userSetTime,
+						lastUpdateTime: String(new Date().getTime()),
+					}).then(() => {
+						setTimeout(() => {
+							uni.hideLoading()
+							uni.showToast({
+								icon: 'success',
+								title: '上传成功'
+							})
+							setTimeout(() => {
+								uni.navigateBack({})
+							}, 1500)
+						}, 200)
+					}).catch((e) => {
+						setTimeout(() => {
+							uni.hideLoading()
+							uni.showToast({
+								icon: 'error',
+								title: '上传失败'
+							})
+							console.log(e)
+						}, 200)
+					})
+				}
+
+
+
 
 
 
@@ -126,5 +214,19 @@
 </script>
 
 <style lang="scss">
+	.content {
+		padding: 30rpx;
+	}
 
+	.uni-input {
+		padding: 10rpx 0;
+	}
+
+	.img-picker {
+		margin-bottom: 20rpx;
+	}
+
+	.submit-button {
+		margin-top: 20rpx;
+	}
 </style>
