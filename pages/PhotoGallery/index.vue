@@ -1,7 +1,7 @@
 <template>
 	<view class="content">
-		<view class="bg-img-botton"
-			:style="{ 'background-image': `url(${info[bottomCurrent] ? info[bottomCurrent].imgUrl : ''})`}" />
+<!-- 		<view class="bg-img-botton"
+			:style="{ 'background-image': `url(${info[bottomCurrent] ? info[bottomCurrent].imgUrl : ''})`}" /> -->
 		<view class="bg-img" :style="{ 'background-image': `url(${info[current].imgUrl})` }" />
 
 		<view class="header">
@@ -34,7 +34,7 @@
 									</view>
 								</view>
 								<view class="star-num">
-									<view class="star-item" v-for="item in new Array(5)">
+									<view class="star-item" v-for="item in 5">
 										<uni-icons color="#e85481" type="star-filled" size="24" />
 									</view>
 								</view>
@@ -76,9 +76,9 @@
 					imgUrl: 'https://mp-76f6500b-d2d6-4ca0-8bb1-f5fadc40d4ba.cdn.bspapp.com/cloudstorage/e86f682a-e3a9-49b3-8c21-ec54c0dfe169.jpg'
 				}],
 				current: 0,
-				bottomCurrent: 0,
+				// bottomCurrent: 0,
 				_id: '-1',
-				nowSortType: SortTypeEnum.BUILDDESC,
+				nowSortType: SortTypeEnum.IMGTIMEDESC,
 				sortTypeList: [{
 						value: SortTypeEnum.BUILDDESC,
 						text: "最新创建"
@@ -107,12 +107,12 @@
 			};
 		},
 		watch: {
-			current(val, oldVal) {
-				const that = this
-				setTimeout(() => {
-					that.bottomCurrent = val
-				}, 500)
-			},
+			// current(val, oldVal) {
+			// 	const that = this
+			// 	setTimeout(() => {
+			// 		that.bottomCurrent = val
+			// 	}, 500)
+			// },
 			nowSortType(val, oldVal) {
 				this.getListData()
 			},
@@ -206,15 +206,15 @@
 		box-sizing: border-box;
 	}
 
-	.bg-img-botton {
-		z-index: -10;
-		position: absolute;
-		width: 100vw;
-		height: 100vh;
-		background-size: 100% 100%;
-		filter: blur(5px) brightness(1) sepia(0.2);
-		transition: all .2s ease;
-	}
+	// .bg-img-botton {
+	// 	z-index: -10;
+	// 	position: absolute;
+	// 	width: 100vw;
+	// 	height: 100vh;
+	// 	background-size: 100% 100%;
+	// 	filter: blur(5px) brightness(1) sepia(0.2);
+	// 	transition: all .2s ease;
+	// }
 
 	.bg-img {
 		z-index: -5;

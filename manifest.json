@@ -38,11 +38,12 @@
     },
     "quickapp" : {},
     "mp-weixin" : {
-        "appid" : "",
+        "appid" : "wx698c7457b1cc1356",
         "setting" : {
             "urlCheck" : true
         },
-        "usingComponents" : true
+        "usingComponents" : true,
+        "permission" : {}
     },
     "vueVersion" : "3",
     "h5" : {

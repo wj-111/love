@@ -23,8 +23,9 @@
 						linkUrl: '/pages/PhotoGallery/index'
 					},
 					{
-						title: '留言板',
-						className: 'right-top'
+						title: '笔记',
+						className: 'right-top',
+						linkUrl: '/pages/NoteAndTodo/index'
 					},
 					{
 						title: '书',

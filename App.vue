@@ -1,17 +1,26 @@
 <script>
-export default {
-	onLaunch: function() {
-		console.log('App Launch');
-	},
-	onShow: function() {
-		console.log('App Show');
-	},
-	onHide: function() {
-		console.log('App Hide');
-	}
-};
+	export default {
+		onLaunch: function() {
+			console.log('App Launch');
+		},
+		onShow: function() {
+			console.log('App Show');
+		},
+		onHide: function() {
+			console.log('App Hide');
+		}
+	};
 </script>
 
 <style>
-/*每个页面公共css */ 
+	/*每个页面公共css */
+	.rich-text-img {
+		border-radius: 25rpx;
+	}
+
+	uni-page-body,
+	html,
+	body {
+		height: 100%;
+	}
 </style>
