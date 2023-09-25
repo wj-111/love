@@ -18,7 +18,10 @@
 		<editor @input="$debounce(handleEditorChange, 1000)" @focus="changeButtonShow(true)"
 			@blur="changeButtonShow(false)" id="editor" class="ql-container" placeholder="开始输入..."
 			@ready="onEditorReady"></editor>
-		<button class="add-img-button" @tap="addImg">插入图片</button>
+		<button class="add-img-button" @tap="addImg">
+			插入图片
+			<!-- <uni-icons type="image" size="24" /> -->
+		</button>
 	</view>
 </template>
 
@@ -29,20 +32,68 @@
 				noteId: '-1',
 				dateObj: {
 					time: 1695177923583,
-					text: '9月20日 上午10:31'
+					text: '未设置'
 				},
-				textCount: 0,
+				// textCount: 0,
 				isAddImgButtonShow: true,
 				editorCtx: undefined,
 				title: '',
+				isInit: false,
 				onlineImgObj: {}, // 注意初始化回填数据的时候，左右都是网络图片
 			}
 		},
+		onLoad(option) {
+			const {
+				id
+			} = option
+			console.log(id)
+			if (id) {
+				this.noteId = id
+				uni.showLoading({
+					title: '加载中',
+					mask: true,
+				})
+				const db = uniCloud.databaseForJQL();
+				db.collection('note')
+					.where(`_id == "${id}"`)
+					.get()
+					.then((res) => {
+						const {
+							errCode,
+							data
+						} = res || {}
+						console.log(res)
+						if (errCode === 0) {
+							if (data.length) {
+								const {
+									title,
+									content,
+									last_modify_date
+								} = data[0]
+								this.title = title
+								// TODO: 会不会有富文本编辑器还没准备好的情况
+								console.log('content', content)
+								this.editorCtx.setContents({
+									delta: content
+								})
+								this.calculateTime(last_modify_date)
+							}
+						}
+						uni.hideLoading()
+					}).catch((err) => {
+						// err.message 错误信息
+						// err.code 错误码
+					})
+			}
+		},
+		watch: {
+			title(newVal, oldVal) {
+				this.$debounce(this.handleEditorChange, 1000)
+				// this.$test()
+			}
+		},
 		mounted() {
-			// 处理是新笔记还是修改的情况
-
-
-			this.calculateTime()
+			
 		},
 		methods: {
 			// 保存内容时，遍历整个富文本区域，有未上传的图片资源的时候，上传并记录（图片资源单独维护为一个列表）
@@ -101,15 +152,38 @@
 				return Promise.all(uploadPromises)
 			},
 			// 当标题和编辑器内容都为空时，直接删除；重新有内容了再创新的
-			deleteNote() {
+			async deleteNote() {
+				// TODO: 删除要改，只标记不彻底删除
+				// 如果还没有id，则直接返回
+				if (this.noteId === '-1') return
 				console.log('删除本条内容')
+				const db = uniCloud.database();
+				const dbResult = await db.collection('note').doc(this.noteId).update({
+					article_status: 0,
+				})
+				// 错误处理
+				if (dbResult.errCode === 0) {
+					console.log('删除成功')
+					this.noteId === '-1'
+				}
 			},
 			// TODO: 很多错误处理都还没有
 			handleEditorChange() {
+				// 对内容修改并且里面有图片的时候，初始化时会一进来浏览就进行一次更新，并改变最新更新时间，这里就是处理这个问题，分辨的不是很好
+				// console.log(this.isInit)
+				// if (!this.isInit && this.noteId !== '-1') {
+				// 	console.log('初始化')
+				// 	this.isInit = true
+				// 	return
+				// }
+				
+				// 最后更新一下时间
+				console.log('会走一遍这里？')
+				this.calculateTime(new Date().getTime())
+				
 				const that = this
 				this.editorCtx.getContents({
 					success: async (detail) => {
-						console.log(detail)
 						const {
 							delta
 						} = detail
@@ -149,7 +223,8 @@
 						if (that.noteId === '-1') {
 							db.collection('note').add({
 								title: that.title,
-								content: nextContent
+								content: nextContent,
+								article_status: 1,
 							}).then(res => {
 								console.log(res)
 								const {
@@ -163,36 +238,41 @@
 								}
 							})
 						} else {
+							// 任何改动也会强制令该条记录重新变成激活状态
 							db.collection('note').doc(that.noteId).update({
 								title: that.title,
-								content: nextContent
+								content: nextContent,
+								article_status: 1,
 							}).then(res => {
 								console.log(res)
 							})
 						}
 					}
 				})
+		
 			},
 			changeButtonShow(nextShow) {
 				this.isAddImgButtonShow = nextShow
 			},
-			calculateTime() {
-				const nowDate = new Date()
+			calculateTime(timestamp) {
+
+				const nowDate = new Date(timestamp)
 				const time = nowDate.getTime()
 				const month = nowDate.getMonth() + 1
 				const date = nowDate.getDate()
 				const hours = nowDate.getHours()
-				const minutes = nowDate.getMinutes()
+				let minutes = nowDate.getMinutes()
+				minutes = minutes > 9 ? minutes : `0${minutes}`
 				const amOrPm = hours >= 12 ? '下午' : '上午'
 				this.dateObj = {
 					time,
-					text: `${month}年${date}日 ${amOrPm}${hours}:${minutes}`
+					text: `${month}月${date}日 ${amOrPm}${hours}:${minutes}`
 				}
 			},
 			async onEditorReady() {
 				uni.createSelectorQuery().select('#editor').context((res) => {
 					this.editorCtx = res.context
-					console.log()
+
 				}).exec()
 			},
 			addImg() {

@@ -4,7 +4,11 @@
 		{
 			"path": "pages/tabbar/tabbar-1/tabbar-1",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "uni-app",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
 			}
 		},
 		{
@@ -49,17 +53,20 @@
 			"style": {
 				"navigationBarTitleText": "笔记和待办",
 				"enablePullDownRefresh": false,
+				"navigationStyle": "custom",
 				"app-plus": {
-					"titleNView": {
-						"titleAlign": "left"
-					}
+					"titleNView": false
 				}
 			}
 		}, {
 			"path": "pages/NoteAndTodo/NoteEdit",
 			"style": {
 				"navigationBarTitleText": "编辑",
-				"enablePullDownRefresh": false
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
 			}
 		}, {
 			"path": "pages/PhotoGallery/edit",

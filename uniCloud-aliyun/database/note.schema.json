@@ -2,8 +2,8 @@
 	"bsonType": "object",
 	"required": [
 		// "user_id",
-		"title",
-		"content"
+		// "title",
+		// "content"
 	],
 	"permission": {
 		// "read": "doc.user_id == auth.uid && doc.article_status == 0 || doc.article_status == 1",
@@ -63,7 +63,7 @@
 			"bsonType": "int",
 			"title": "文章状态",
 			"description": "文章状态：0 已遗弃 1 正常",
-			"defaultValue": 0,
+			"defaultValue": 1,
 			"enum": [
 				{
 					"value": 0,
