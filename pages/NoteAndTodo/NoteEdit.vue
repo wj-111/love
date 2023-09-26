@@ -88,12 +88,10 @@
 		},
 		watch: {
 			title(newVal, oldVal) {
+				// 初始化之后，如果设置了title
+
 				this.$debounce(this.handleEditorChange, 1000)
-				// this.$test()
 			}
-		},
-		mounted() {
-			
 		},
 		methods: {
 			// 保存内容时，遍历整个富文本区域，有未上传的图片资源的时候，上传并记录（图片资源单独维护为一个列表）
@@ -101,7 +99,6 @@
 				const that = this
 				// 先拉出图片元素
 				const imgDelta = delta.filter(item => item.insert?.image)
-
 				const uploadPromises = imgDelta.map(item => {
 					return new Promise((resolve, reject) => {
 						const filePath = item.insert.image
@@ -117,11 +114,6 @@
 								[filePath]: that.onlineImgObj[filePath]
 							})
 						}
-
-						// this.onlineImgObj[item.insert?.image]
-
-
-
 						uniCloud.uploadFile({
 							filePath,
 							// 同一秒两个人上传怎么办
@@ -131,14 +123,14 @@
 									fileID
 								} = res
 								resolve({
-									[filePath]: fileID
+									[filePath]: `${fileID}?x-oss-process=image/quality,Q_50`
 								})
 							},
 							fail(res) {
 								console.error('上传错误', res)
 								// 错误图片
 								resolve({
-									[filePath]: 'https://mp-76f6500b-d2d6-4ca0-8bb1-f5fadc40d4ba.cdn.bspapp.com/public/upload_2822d3f4c4b4453397fa4e6c94617863.png'
+									[filePath]: 'https://mp-76f6500b-d2d6-4ca0-8bb1-f5fadc40d4ba.cdn.bspapp.com/public/upload_2822d3f4c4b4453397fa4e6c94617863.png?x-oss-process=image/quality,Q_5'
 								})
 							},
 						});
@@ -169,18 +161,18 @@
 			},
 			// TODO: 很多错误处理都还没有
 			handleEditorChange() {
-				// 对内容修改并且里面有图片的时候，初始化时会一进来浏览就进行一次更新，并改变最新更新时间，这里就是处理这个问题，分辨的不是很好
+				// 初始化里面有标题的时候，一进来浏览就会触发一次更新，并改变最新更新时间，这里就是处理这个问题，分辨的不是很好
 				// console.log(this.isInit)
-				// if (!this.isInit && this.noteId !== '-1') {
-				// 	console.log('初始化')
-				// 	this.isInit = true
-				// 	return
-				// }
-				
+				if (!this.isInit && this.title) {
+					console.log('标题初始化，不用更新内容')
+					this.isInit = true
+					return
+				}
+
 				// 最后更新一下时间
 				console.log('会走一遍这里？')
 				this.calculateTime(new Date().getTime())
-				
+
 				const that = this
 				this.editorCtx.getContents({
 					success: async (detail) => {
@@ -243,13 +235,14 @@
 								title: that.title,
 								content: nextContent,
 								article_status: 1,
+								last_modify_date: new Date().getTime()
 							}).then(res => {
 								console.log(res)
 							})
 						}
 					}
 				})
-		
+
 			},
 			changeButtonShow(nextShow) {
 				this.isAddImgButtonShow = nextShow

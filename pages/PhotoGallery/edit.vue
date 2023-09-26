@@ -71,7 +71,7 @@
 								userSetTime
 							} = data[0]
 							this.imageValue = {
-								url: imgUrl
+								url: `${imgUrl}?x-oss-process=image/quality,Q_50`
 							}
 							this.description = description
 							this.position = position
@@ -110,8 +110,8 @@
 			upload() {
 				console.log(this.imageValue)
 				// 有概率新增也会出现有这个对象
-				
-				// 如果未修改图片或者新增图片，就直接调用上传其他信息
+
+				// 如果未修改图片，就直接调用上传其他信息
 				if (this?.imageValue?.url) {
 					this.success()
 				} else {
@@ -196,12 +196,6 @@
 						}, 200)
 					})
 				}
-
-
-
-
-
-
 				// TODO: 失败的话要删除图片
 			},
 

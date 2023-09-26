@@ -7,28 +7,28 @@
 					{{item}}
 				</view>
 			</view>
-			<view class="class-add-button">
+			<view @click="toClassEdit" class="class-add-button">
 				<uni-icons type="folder-add" size="28" color="#efcf63"></uni-icons>
 			</view>
 		</view>
-
 		<view class="note-list-container">
 			<view @click="toEdit(item._id)" class="note-item" v-for="item in noteList">
 				<!-- 这里看下是否可以把三个函数抽成一个函数, 计算属性？ -->
 				<view class="">
 					<view class="note-title">
-						{{item.title || '（无标题）'}}
+						{{item.title || '(无标题)'}}
 					</view>
 					<view class="note-content">
-						{{renderContentText(item.content) || '（无文本内容）'}}
+						{{renderContentText(item.content) || '(无文本内容)'}}
 					</view>
 					<view class="note-content note-date">
 						{{renderTime(item.last_modify_date)}}
 					</view>
 				</view>
 				<view class="img-box">
+					<!-- 图片懒加载看怎么实现 -->
 					<!-- 合并后这里也加个v-if -->
-					<image class="img-item" :src="gainFirstImgSrc(item.content)" mode=""></image>
+					<image class="img-item" :src="gainFirstImgSrc(item.content)" mode="aspectFill"></image>
 				</view>
 			</view>
 
@@ -84,6 +84,11 @@
 						uni.hideLoading()
 					})
 			},
+			toClassEdit() {
+				uni.navigateTo({
+					url: '/pages/NoteAndTodo/ClassEdit'
+				});
+			},
 			toEdit(id) {
 				uni.navigateTo({
 					url: `/pages/NoteAndTodo/NoteEdit?id=${id}`
@@ -93,7 +98,7 @@
 				const imgItemList = content.filter(item => item.insert.image)
 				console.log('imgItemList', imgItemList)
 				if (imgItemList.length) {
-					return imgItemList[0].insert.image || ''
+					return imgItemList[0].insert.image.slice(0, -1) || ''
 				}
 				return ''
 			},

@@ -2,7 +2,7 @@
 	<view class="content">
 <!-- 		<view class="bg-img-botton"
 			:style="{ 'background-image': `url(${info[bottomCurrent] ? info[bottomCurrent].imgUrl : ''})`}" /> -->
-		<view class="bg-img" :style="{ 'background-image': `url(${info[current].imgUrl})` }" />
+		<view class="bg-img" :style="{ 'background-image': `url(${info[current].imgUrl}?x-oss-process=image/quality,Q_50)` }" />
 
 		<view class="header">
 			<view class="tools">
@@ -19,7 +19,7 @@
 				<view class="swiper-item">
 					<view :class="index === current ? 'white-box-selected' : 'white-box'">
 						<image mode="aspectFill" :class="index === current ? 'item-img-selected' : 'item-img'"
-							:src="item.imgUrl" alt="图片" />
+							:src="`${item.imgUrl}?x-oss-process=image/quality,Q_50` " alt="图片" />
 						<view v-if="index === current" class="">
 							<view class="description">
 								{{item.description}}
