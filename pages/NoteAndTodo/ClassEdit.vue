@@ -4,7 +4,7 @@
 			<view class="select-statu">
 				<uni-icons v-show="item._id === selectedId" type="checkmarkempty" color="#f2be42" size="22" />
 			</view>
-			{{item.title}} ({{item.count}})
+			{{item.classTitle}} ({{item.count || 0}})
 			<view class="class-tools">
 				<uni-icons @click="jumptoEdit(item._id)" type="compose" size="22" class="first-icon"></uni-icons>
 				<uni-icons @click="deletePhoto(item)" type="trash" size="22"></uni-icons>
@@ -31,24 +31,61 @@
 		data() {
 			return {
 				classList: [{
-					title: '全部',
+					classTitle: '全部',
 					_id: '-1',
-					count: 0,
-				}, {
-					title: '假数据1',
-					_id: '1',
 					count: 0,
 				}],
 				selectedId: '-1',
 			};
+		},
+		mounted() {
+			this.refreshList()
 		},
 		methods: {
 			inputDialogToggle() {
 				this.$refs.inputDialog.open()
 			},
 			dialogInputConfirm(val) {
-				console.log(val)
+				const db = uniCloud.database();
+				db.collection('note_class').add({
+					classTitle: val,
+				}).then(res => {
+					const {
+						errCode,
+						id
+					} = res.result || {}
+					console.log('res', res)
+					if (errCode === 0) {
+						console.log('id', id)
+						this.refreshList()
+					}
+				}).catch(err => {
+					let isConflict = false
+					if (String(err).indexOf('冲突')) isConflict = true
+					uni.showToast({
+						icon: 'error',
+						title: `新建失败${isConflict ? ',命名重复' : ''}`
+					})
+				})
 			},
+			refreshList() {
+				const db = uniCloud.databaseForJQL();
+				db.collection('note_class')
+					.get()
+					.then(res => {
+						const {
+							errCode,
+							data
+						} = res || {}
+						if (errCode === 0) {
+							this.classList = [{
+								classTitle: '全部',
+								_id: '-1',
+								count: 0,
+							}, ...data]
+						}
+					})
+			}
 		}
 	}
 </script>
@@ -77,6 +114,7 @@
 
 		.class-tools {
 			margin-left: auto;
+
 			.first-icon {
 				margin-right: 20rpx;
 			}

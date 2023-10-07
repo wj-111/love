@@ -1,12 +1,19 @@
 <template>
 	<view class="content">
 		<view class="menu-container">
-			<view @click="jumpPage(item.linkUrl)" v-for="(item, index) in menuList" :class="[item.className, 'menu-item']">
+			<view @click="jumpPage(item.linkUrl)" v-for="(item, index) in menuList"
+				:class="[item.className, 'menu-item']">
 				{{item.title}}
 			</view>
 			<view class="center-heart">
 				123
 			</view>
+		</view>
+
+		<view class="beian-container">
+			苏ICP备 <a class="to_gong_an" href="http://beian.miit.gov.cn/" target="_blank">2023032406号</a>
+			<br>
+			公网安备 <a class="to_gong_an" href="http://www.beian.gov.cn/" target="_blank">32041102000871号</a>
 		</view>
 	</view>
 </template>
@@ -16,8 +23,7 @@
 		data() {
 			return {
 				title: 'Hello',
-				menuList: [
-					{
+				menuList: [{
 						title: '照片长廊',
 						className: 'left-top',
 						linkUrl: '/pages/PhotoGallery/index'
@@ -53,12 +59,24 @@
 </script>
 
 <style lang="scss">
+	.beian-container {
+		width: 100vw;
+		text-align: center;
+		position: absolute;
+		bottom: 0;
+		color: #d2d2d2;
+	}
+	
+	.to_gong_an {
+		color: #d2d2d2;
+	}
+	
 	.content {
 		width: 100vw;
 		height: 100vh;
 		text-align: center;
 	}
-	
+
 	.menu-container {
 		position: absolute;
 		top: 50%;
@@ -68,31 +86,31 @@
 		width: 80vw;
 		height: 400rpx;
 	}
-	
+
 	.left-top {
 		position: absolute;
 		top: 0px;
-		left: 0px;	
+		left: 0px;
 	}
-	
+
 	.right-top {
 		position: absolute;
 		top: 0px;
 		right: 0px;
 	}
-	
+
 	.left-botton {
 		position: absolute;
 		bottom: 0px;
 		left: 0px;
 	}
-	
+
 	.right-botton {
 		position: absolute;
 		bottom: 0px;
 		right: 0px;
 	}
-	
+
 	.menu-item {
 		background-color: #d2d2d2;
 		width: 30vw;
@@ -101,7 +119,7 @@
 		line-height: 150rpx;
 		border-radius: 10rpx;
 	}
-	
+
 	.center-heart {
 		background-color: #e9e9e9;
 		position: absolute;

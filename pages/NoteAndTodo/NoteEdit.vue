@@ -39,6 +39,7 @@
 				editorCtx: undefined,
 				title: '',
 				isInit: false,
+				initDelta: [],
 				onlineImgObj: {}, // 注意初始化回填数据的时候，左右都是网络图片
 			}
 		},
@@ -73,13 +74,17 @@
 								this.title = title
 								// TODO: 会不会有富文本编辑器还没准备好的情况
 								console.log('content', content)
-								this.editorCtx.setContents({
-									delta: content
-								})
+								if (this.editorCtx) {
+									this.editorCtx.setContents({
+										delta: content
+									})
+									uni.hideLoading()
+								} else {
+									this.initDelta = content
+								}
 								this.calculateTime(last_modify_date)
 							}
 						}
-						uni.hideLoading()
 					}).catch((err) => {
 						// err.message 错误信息
 						// err.code 错误码
@@ -89,7 +94,6 @@
 		watch: {
 			title(newVal, oldVal) {
 				// 初始化之后，如果设置了title
-
 				this.$debounce(this.handleEditorChange, 1000)
 			}
 		},
@@ -265,7 +269,10 @@
 			async onEditorReady() {
 				uni.createSelectorQuery().select('#editor').context((res) => {
 					this.editorCtx = res.context
-
+					this.editorCtx.setContents({
+						delta: this.initDelta
+					})
+					uni.hideLoading()
 				}).exec()
 			},
 			addImg() {
