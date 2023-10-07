@@ -13,7 +13,7 @@
 			<uni-icons type="plusempty" color="#fff" size="30"></uni-icons>
 		</view>
 		<view class="note-container">
-			<Note />
+			<Note @onClassChange="changeClass" />
 		</view>
 	</view>
 </template>
@@ -27,7 +27,8 @@
 		},
 		data() {
 			return {
-				isNote: true
+				isNote: true,
+				selectedClass: '-1',
 			}
 		},
 		onShow() {
@@ -35,12 +36,16 @@
 			uni.$emit('update')
 		},
 		methods: {
+			changeClass(nextSelectedClass) {
+				this.selectedClass = nextSelectedClass
+				console.log(this.selectedClass)
+			},
 			updateIsNote(nextIsNote) {
 				this.isNote = nextIsNote
 			},
 			toEdit() {
 				uni.navigateTo({
-					url: '/pages/NoteAndTodo/NoteEdit'
+					url: '/pages/NoteAndTodo/NoteEdit?classId=' + this.selectedClass
 				});
 			}
 		}

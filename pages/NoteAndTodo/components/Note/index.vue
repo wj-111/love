@@ -2,9 +2,9 @@
 	<view class="note-content">
 		<view class="class-container">
 			<view class="class-items">
-				<view v-for="(item, index) in classList" @click="updateSelectedClass(item)" class="class-item"
-					:class="selectedClass === item ? 'highlighted-class-item' : ''">
-					{{item}}
+				<view v-for="(item, index) in classList" @click="updateSelectedClass(item._id)" class="class-item"
+					:class="selectedClass === item._id ? 'highlighted-class-item' : ''">
+					{{item.classTitle}}
 				</view>
 			</view>
 			<view @click="toClassEdit" class="class-add-button">
@@ -31,8 +31,6 @@
 					<image class="img-item" :src="gainFirstImgSrc(item.content)" mode="aspectFill"></image>
 				</view>
 			</view>
-
-
 		</view>
 	</view>
 </template>
@@ -43,12 +41,16 @@
 	export default {
 		data() {
 			return {
-				selectedClass: '全部',
-				classList: ['全部', '测试1', '测试2', '测试3', '测试4', '测试5'],
+				selectedClass: '-1',
+				classList: [{
+					classTitle: '全部',
+					_id: '-1',
+				}],
 				noteList: [],
 			}
 		},
 		mounted() {
+			// 初始化时候的数据获取
 			this.getDataList()
 		},
 		// onShow() {
@@ -56,6 +58,7 @@
 		// 	this.getDataList()
 		// },
 		created() {
+			// 当页面onShow的时候数据获取
 			uni.$on('update', () => {
 				console.log('刷新')
 				//重绘页面子组件methods中的函数调用
@@ -63,26 +66,45 @@
 			})
 		},
 		methods: {
-			getDataList() {
+			async getDataList() {
 				uni.showLoading({
 					title: '加载中',
 					mask: true,
 				})
+
 				const db = uniCloud.databaseForJQL();
-				db.collection('note')
-					.where(`article_status == 1`)
+
+				// 获取分类
+				const noteClassPromise = db.collection('note_class')
 					.get()
-					.then(res => {
-						const {
-							errCode,
-							data,
-						} = res
-						if (errCode === 0) {
-							console.log(data)
-							this.noteList = data
-						}
-						uni.hideLoading()
-					})
+
+				// 获取列表
+				let tempWhere = this.selectedClass !== '-1' ? ` && category_id == '${this.selectedClass}'` : ''
+				if (this.selectedClass === null) tempWhere = ` && category_id == ${this.selectedClass}`
+				
+				
+				const notePromise = db.collection('note')
+					.where('article_status == 1' + tempWhere)
+					.orderBy('last_modify_date desc')
+					.get()
+
+				const noteClassRes = await noteClassPromise
+				if (noteClassRes.errCode === 0) {
+					this.classList = [{
+						classTitle: '全部',
+						_id: '-1',
+					}, ...noteClassRes.data, {
+						classTitle: '未分类',
+						_id: null,
+					}]
+				}
+
+				const noteRes = await notePromise
+				if (noteRes.errCode === 0) {
+					this.noteList = noteRes.data
+				}
+				uni.hideLoading()
+
 			},
 			toClassEdit() {
 				uni.navigateTo({
@@ -96,7 +118,6 @@
 			},
 			gainFirstImgSrc(content) {
 				const imgItemList = content.filter(item => item.insert.image)
-				console.log('imgItemList', imgItemList)
 				if (imgItemList.length) {
 					return imgItemList[0].insert.image.slice(0, -1) || ''
 				}
@@ -111,6 +132,8 @@
 			},
 			updateSelectedClass(nextSelectedClass) {
 				this.selectedClass = nextSelectedClass
+				this.$emit('onClassChange', nextSelectedClass);
+				this.getDataList()
 			}
 		}
 	}
@@ -190,6 +213,7 @@
 		-ms-overflow-style: none;
 		/* IE 10+ */
 
+		margin-right: 20rpx;
 		overflow: auto;
 		white-space: nowrap;
 		border-radius: 20rpx;
@@ -209,7 +233,9 @@
 		border-radius: 20rpx;
 		background-color: #fff;
 		padding: 0 20rpx;
-		margin-left: 20rpx;
+		// margin-left: 20rpx;
+		margin-left: auto;
+
 
 		display: flex;
 		align-items: center;

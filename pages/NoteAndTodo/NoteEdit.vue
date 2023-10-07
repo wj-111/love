@@ -30,6 +30,7 @@
 		data() {
 			return {
 				noteId: '-1',
+				classId: '-1',
 				dateObj: {
 					time: 1695177923583,
 					text: '未设置'
@@ -45,9 +46,11 @@
 		},
 		onLoad(option) {
 			const {
-				id
+				id,
+				classId,
 			} = option
-			console.log(id)
+			console.log(classId)
+			if (classId) this.classId = classId
 			if (id) {
 				this.noteId = id
 				uni.showLoading({
@@ -93,8 +96,12 @@
 		},
 		watch: {
 			title(newVal, oldVal) {
-				// 初始化之后，如果设置了title
-				this.$debounce(this.handleEditorChange, 1000)
+				// 如果初始化过，则要加上防抖
+				if (this.isInit) {
+					this.$debounce(this.handleEditorChange, 1000)
+				} else {
+					this.handleEditorChange()
+				}
 			}
 		},
 		methods: {
@@ -140,7 +147,6 @@
 						});
 					});
 				})
-				console.log('uploadPromises', uploadPromises)
 				if (uploadPromises.length === 0) {
 					return []
 				}
@@ -239,6 +245,7 @@
 								title: that.title,
 								content: nextContent,
 								article_status: 1,
+								...(that.classId !== '-1' ? {category_id: that.classId}  : {}),
 								last_modify_date: new Date().getTime()
 							}).then(res => {
 								console.log(res)
@@ -269,10 +276,13 @@
 			async onEditorReady() {
 				uni.createSelectorQuery().select('#editor').context((res) => {
 					this.editorCtx = res.context
-					this.editorCtx.setContents({
-						delta: this.initDelta
-					})
-					uni.hideLoading()
+					// 存在编辑器未初始化时，已经获取到了数据，在这里回填 TODO: 编辑器可能加载很慢
+					if (this.initDelta.length) {
+						this.editorCtx.setContents({
+							delta: this.initDelta
+						})
+						uni.hideLoading()
+					}
 				}).exec()
 			},
 			addImg() {

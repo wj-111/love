@@ -1,16 +1,18 @@
 <template>
 	<view class="class-edit-content">
-		<view class="class-item" v-for="item in classList">
+		<view class="class-item" v-for="(item, index) in classList">
 			<view class="select-statu">
 				<uni-icons v-show="item._id === selectedId" type="checkmarkempty" color="#f2be42" size="22" />
 			</view>
 			{{item.classTitle}} ({{item.count || 0}})
-			<view class="class-tools">
-				<uni-icons @click="jumptoEdit(item._id)" type="compose" size="22" class="first-icon"></uni-icons>
-				<uni-icons @click="deletePhoto(item)" type="trash" size="22"></uni-icons>
+			<view v-if="index !== 0" class="class-tools">
+				<uni-icons @click="editClass(item._id, item.classTitle)" type="compose" size="22"
+					class="first-icon"></uni-icons>
+				<uni-icons @click="deleteClass(item._id, item.count, item.classTitle)" type="trash"
+					size="22"></uni-icons>
 			</view>
 		</view>
-		<view @click="inputDialogToggle" class="add-button">
+		<view @click="inputDialogToggle(true)" class="add-button">
 			新建文件夹
 			<text class="add-button-icon" @click="toEdit">
 				<uni-icons type="plusempty" color="#fff" size="18"></uni-icons>
@@ -19,7 +21,7 @@
 		<view>
 			<!-- 输入框示例 -->
 			<uni-popup ref="inputDialog" type="dialog">
-				<uni-popup-dialog ref="inputClose" mode="input" title="新建文件夹" value="文件夹" placeholder="请输入内容"
+				<uni-popup-dialog ref="inputClose" mode="input" title="新建文件夹" :value="nowChangeName" placeholder="请输入内容"
 					@confirm="dialogInputConfirm"></uni-popup-dialog>
 			</uni-popup>
 		</view>
@@ -36,20 +38,68 @@
 					count: 0,
 				}],
 				selectedId: '-1',
+				nowChangeId: '-1',
+				nowChangeName: '文件夹'
 			};
 		},
 		mounted() {
 			this.refreshList()
 		},
 		methods: {
-			inputDialogToggle() {
+			deleteClass(classId, classCount = 0, classTitle = '') {
+				uni.showModal({
+					title: `是否确认删除"${classTitle}"文件夹和内部的${classCount}条笔记`,
+					success: async (res) => {
+						console.log(res)
+						const {
+							confirm,
+							cancel
+						} = res
+						if (confirm) {
+							uni.showLoading({
+								title: '操作中',
+								mask: true,
+							})
+							const db = uniCloud.database();
+							// TODO: db是就定义一次比较好，还是随用随定义好
+							const dbResult = await db.collection('note_class').doc(classId)
+								.remove()
+							// TODO: 把文件夹里的也删除
+							setTimeout(() => {
+								uni.hideLoading()
+								this.refreshList()
+							}, 500)
+						}
+
+					}
+				})
+			},
+			editClass(classId, className) {
+				this.nowChangeId = classId
+				this.nowChangeName = className
+				this.inputDialogToggle(false)
+			},
+			inputDialogToggle(isNew) {
+				if (isNew) {
+					this.nowChangeId = '-1'
+					this.nowChangeName = '文件夹'
+				}
 				this.$refs.inputDialog.open()
 			},
-			dialogInputConfirm(val) {
+			async dialogInputConfirm(val) {
 				const db = uniCloud.database();
-				db.collection('note_class').add({
-					classTitle: val,
-				}).then(res => {
+				try {
+					let res = {}
+					if (this.nowChangeId === '-1') {
+						res = await db.collection('note_class').add({
+							classTitle: val,
+						})
+					} else {
+						res = await db.collection('note_class').doc(this.nowChangeId).update({
+							classTitle: val,
+						})
+					}
+
 					const {
 						errCode,
 						id
@@ -59,32 +109,70 @@
 						console.log('id', id)
 						this.refreshList()
 					}
-				}).catch(err => {
+
+
+				} catch (err) {
+					console.log(err)
 					let isConflict = false
 					if (String(err).indexOf('冲突')) isConflict = true
 					uni.showToast({
 						icon: 'error',
-						title: `新建失败${isConflict ? ',命名重复' : ''}`
+						title: `操作失败${isConflict ? ',命名重复' : ''}`
 					})
-				})
+				}
+
 			},
-			refreshList() {
-				const db = uniCloud.databaseForJQL();
-				db.collection('note_class')
-					.get()
-					.then(res => {
-						const {
-							errCode,
-							data
-						} = res || {}
-						if (errCode === 0) {
-							this.classList = [{
-								classTitle: '全部',
-								_id: '-1',
-								count: 0,
-							}, ...data]
-						}
+			async refreshList() {
+				try {
+
+					const db = uniCloud.databaseForJQL();
+					const noteClassPromise = db.collection('note_class').get()
+					// if (errCode === 0) {
+					// 	this.classList = [{
+					// 		classTitle: '全部',
+					// 		_id: '-1',
+					// 		count: 0,
+					// 	}, ...data]
+					// }
+
+					// 中间步骤，筛选出有效的笔记
+					const validNoteStep = db.collection('note')
+						.where('article_status == 1')
+
+					const groupCountPromise = validNoteStep.groupBy('category_id')
+						.groupField('count(*) as count')
+						.get()
+
+					const totalCountPromise = validNoteStep.get({
+						getCount: true
 					})
+
+					const noteClassRes = await noteClassPromise
+					const groupCountRes = await groupCountPromise
+					const totalCountRes = await totalCountPromise
+
+					if (noteClassRes.errCode === 0 && groupCountRes.errCode === 0 && totalCountRes.errCode === 0) {
+						// console.log(noteClassRes, groupCountRes, totalCountRes)
+						this.classList = [{
+							classTitle: '全部',
+							_id: '-1',
+							count: totalCountRes.count,
+						}, ...noteClassRes.data.map(item => {
+							return {
+								...item,
+								count: groupCountRes.data.find(hasCountItem => (hasCountItem.category_id === item._id))?.count || 0
+							}
+						}), {
+							classTitle: '未分类',
+							_id: null,
+							count: groupCountRes.data.find(hasCountItem => (hasCountItem.category_id === null))?.count || 0
+						}]
+					}
+
+
+				} catch (e) {
+					console.error(e)
+				}
 			}
 		}
 	}
