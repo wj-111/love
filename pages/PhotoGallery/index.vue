@@ -73,7 +73,7 @@
 		data() {
 			return {
 				info: [{
-					imgUrl: 'https://mp-76f6500b-d2d6-4ca0-8bb1-f5fadc40d4ba.cdn.bspapp.com/cloudstorage/e86f682a-e3a9-49b3-8c21-ec54c0dfe169.jpg'
+					imgUrl: 'https://mp-76f6500b-d2d6-4ca0-8bb1-f5fadc40d4ba.cdn.bspapp.com/cloudstorage/394c70e4-c193-4cd7-bbda-ff2128df4dbe.jpg?x-oss-process=image/quality,Q_50'
 				}],
 				current: 0,
 				// bottomCurrent: 0,

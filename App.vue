@@ -18,7 +18,9 @@
 		border-radius: 25rpx;
 	}
 
+	/* 特别注意微信没有html,body元素,只有page,所以写这种全局的时候一定要注意一下兼容 */
 	uni-page-body,
+	page,
 	html,
 	body {
 		height: 100%;

@@ -53,10 +53,6 @@
 			// 初始化时候的数据获取
 			this.getDataList()
 		},
-		// onShow() {
-		// 	console.log('展示')
-		// 	this.getDataList()
-		// },
 		created() {
 			// 当页面onShow的时候数据获取
 			uni.$on('update', () => {
@@ -146,54 +142,46 @@
 		flex-direction: column;
 	}
 
-
-	// .note-list-container::-webkit-scrollbar {
-	//   display: none; /* Chrome Safari */
-	// }
-
 	.note-list-container {
 		// 配合才能自动撑满
 		flex: auto;
 		height: 0rpx;
-
-		// scrollbar-width: none; /* firefox */
-		// -ms-overflow-style: none; /* IE 10+ */
 		overflow: auto;
+	}
+	
+	.note-item {
+		padding: 20rpx;
+		background-color: #fff;
+		margin-bottom: 20rpx;
+		border-radius: 20rpx;
+		display: flex;
+		align-items: center;
 
-		.note-item {
-			padding: 20rpx;
-			background-color: #fff;
-			margin-bottom: 20rpx;
+	}
+	
+	.note-title {
+		font-weight: bold;
+	}
+		
+	.note-content {
+		font-size: 28rpx;
+		color: #676767;
+		margin-top: 5rpx;
+	}
+		
+	.note-date {
+		margin-top: 10rpx;
+	}
+		
+	.img-box {
+		margin-left: auto;
+		margin-right: 20rpx;
+		
+		.img-item {
+			width: 20vw;
+			height: 20vw;
 			border-radius: 20rpx;
-			display: flex;
-			align-items: center;
-
-			.note-title {
-				font-weight: bold;
-			}
-
-			.note-content {
-				font-size: 28rpx;
-				color: #676767;
-				margin-top: 5rpx;
-			}
-
-			.note-date {
-				margin-top: 10rpx;
-			}
-
-			.img-box {
-				margin-left: auto;
-				margin-right: 20rpx;
-
-				.img-item {
-					width: 20vw;
-					height: 20vw;
-					border-radius: 20rpx;
-				}
-			}
 		}
-
 	}
 
 	.class-container {
