@@ -52,11 +52,7 @@
 			"path": "pages/NoteAndTodo/index",
 			"style": {
 				"navigationBarTitleText": "笔记和待办",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom",
-				"app-plus": {
-					"titleNView": false
-				}
+				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/NoteAndTodo/NoteEdit",

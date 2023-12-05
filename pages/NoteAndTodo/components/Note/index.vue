@@ -121,7 +121,10 @@
 			},
 			renderContentText(content) {
 				const textItemList = content.filter(item => !item.insert.image)
-				return textItemList[0].insert === '\n' ? '(无文本内容)' : textItemList[0].insert
+				let text = textItemList[0].insert
+				if (text.length && text.length > 50) text = text.slice(0, 50) + '...'
+				
+				return textItemList[0].insert === '\n' ? '(无文本内容)' : text
 			},
 			renderTime(timestamp) {
 				return dayjs(timestamp).format('MM月DD日 HH:mm')
